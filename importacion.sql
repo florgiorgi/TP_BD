@@ -15,13 +15,13 @@ SET datestyle = "ISO, DMY";
 
 CREATE TABLE datos_recorrido
 (periodo                TEXT,
-id_usuario              INTEGER NOT NULL,
-fecha_hora_retiro       TEXT NOT NULL,
-origen_estacion         INTEGER NOT NULL,
+id_usuario              INTEGER,
+fecha_hora_retiro       TEXT,
+origen_estacion         INTEGER,
 nombre_origen           TEXT,
-destino_estacion        INTEGER NOT NULL,
+destino_estacion        INTEGER,
 nombre_destino          TEXT,
-tiempo_uso              TEXT NOT NULL,
+tiempo_uso              TEXT,
 fecha_creacion          DATE,
 PRIMARY KEY(id_usuario,fecha_hora_retiro, tiempo_uso));
 
