@@ -22,8 +22,8 @@ nombre_origen           TEXT,
 destino_estacion        INTEGER,
 nombre_destino          TEXT,
 tiempo_uso              TEXT,
-fecha_creacion          DATE,
-PRIMARY KEY(id_usuario,fecha_hora_retiro, tiempo_uso));
+fecha_creacion          DATE
+);
 
 -- 7) En la terminal que tenemos abierta: PROOF => \copy datos_recorrido FROM '/home/rdella/test1.csv' csv header delimiter ';' NULL 'NULL';
 
