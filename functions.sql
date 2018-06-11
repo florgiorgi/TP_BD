@@ -87,7 +87,15 @@ DECLARE
         fecha_h_r TIMESTAMP;
         fecha_h_d TIMESTAMP;   
 BEGIN  
- 		
+ 		DELETE 
+        FROM datos_recorrido 
+        WHERE (id_usuario IS NULL) 
+        OR (fecha_hora_retiro IS NULL) 
+        OR (origen_estacion IS NULL) 
+        OR (nombre_origen IS NULL) 
+        OR (destino_estacion IS NULL) 
+        OR (nombre_destino IS NULL)
+        OR (tiempo_uso IS NULL);
 	  	INSERT INTO recorrido_final
 	    SELECT periodo, id_usuario, conversion_de_tipos_retiro(fecha_hora_retiro), 
 	    	origen_estacion, destino_estacion, conversion_de_tipos_devolucion(fecha_hora_retiro, tiempo_uso)
