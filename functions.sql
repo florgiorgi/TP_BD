@@ -123,6 +123,12 @@ CREATE TRIGGER checkFirstRestriction
  BEFORE INSERT ON recorrido_final
  FOR EACH ROW
  EXECUTE PROCEDURE firstRestriction();
+ 
+ /*
+ CREATE TRIGGER checkSecondRestriction
+ BEFORE INSERT ON recorrido_final
+ FOR EACH ROW
+ EXECUTE PROCEDURE secondRestriction(); */
 
 
 CREATE OR REPLACE FUNCTION migracion()
