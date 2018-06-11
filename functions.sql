@@ -8,6 +8,7 @@ BEGIN
 		RETURN rtaTS;
 END;
 $$ LANGUAGE plpgSQL;
+RETURNS NULL ON NULL INPUT;
 
 
 CREATE OR REPLACE FUNCTION conversion_a_timestamp_fecha_hora_devolucion(tiempo_uso TEXT, fecha_hora_retiro TIMESTAMP)
@@ -27,6 +28,7 @@ BEGIN
 		RETURN rtaTS;
 END;
 $$ LANGUAGE plpgSQL;
+RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION tiempo_uso_al_formato_correcto(tiempo_uso TEXT)
 RETURNS TEXT AS $$
@@ -55,6 +57,7 @@ BEGIN
         RETURN rtaTXT;
 END;
 $$ LANGUAGE PLPGSQL; 
+RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_devolucion(fecha_hora_retiro TEXT, tiempo_uso TEXT)
 RETURNS TIMESTAMP AS $$
@@ -69,6 +72,7 @@ BEGIN
        	RETURN rtaTS;
 END;
 $$ LANGUAGE PLPGSQL; 
+RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_retiro(fecha_hora_retiro TEXT)
 RETURNS TIMESTAMP AS $$
@@ -78,7 +82,47 @@ BEGIN
         rtaTS = conversion_a_timestamp_fecha_hora_retiro(fecha_hora_retiro);
         RETURN rtaTS;
 END;
-$$ LANGUAGE PLPGSQL; 
+$$ LANGUAGE PLPGSQL;
+RETURNS NULL ON NULL INPUT;
+
+CREATE OR REPLACE FUNCTION firstRestriction() RETURNS Trigger
+AS $$
+BEGIN
+    IF new.usuario IS NULL THEN
+        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
+                                                            ,new.est_destino,new.fecha_hora_dev;
+        raise notice 'El campo usuario era NULL';
+        return NULL;
+    ELSEIF new.fecha_hora_ret IS NULL THEN
+        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
+                                                      ,new.est_destino,new.fecha_hora_dev;
+        raise notice 'El campo fecha_hora_ret era NULL';
+        return NULL;
+    ELSEIF new.est_origen IS NULL THEN
+        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
+                                                      ,new.est_destino,new.fecha_hora_dev;
+        raise notice 'El campo est_origen era NULL';
+        return NULL;
+    ELSEIF new.est_destino IS NULL THEN
+        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
+                                                      ,new.est_destino,new.fecha_hora_dev;
+        raise notice 'El campo est_destino era NULL';
+        return NULL;
+    ELSEIF new.fecha_hora_dev IS NULL THEN
+        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
+                                                      ,new.est_destino,new.fecha_hora_dev;
+        raise notice 'El campo fecha_hora_dev era NULL';
+        return NULL;
+    ELSE
+        return new;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER checkFirstRestriction
+ BEFORE INSERT ON recorrido_final
+ FOR EACH ROW
+ EXECUTE PROCEDURE firstRestriction();
 
 
 CREATE OR REPLACE FUNCTION migracion()
@@ -87,16 +131,7 @@ DECLARE
         fecha_h_r TIMESTAMP;
         fecha_h_d TIMESTAMP;   
 BEGIN  
- 		DELETE 
-        FROM datos_recorrido 
-        WHERE (id_usuario IS NULL) 
-        OR (fecha_hora_retiro IS NULL) 
-        OR (origen_estacion IS NULL) 
-        OR (nombre_origen IS NULL) 
-        OR (destino_estacion IS NULL) 
-        OR (nombre_destino IS NULL)
-        OR (tiempo_uso IS NULL);
-	  	INSERT INTO recorrido_final
+	    INSERT INTO recorrido_final
 	    SELECT periodo, id_usuario, conversion_de_tipos_retiro(fecha_hora_retiro), 
 	    	origen_estacion, destino_estacion, conversion_de_tipos_devolucion(fecha_hora_retiro, tiempo_uso)
 	    FROM datos_recorrido;
