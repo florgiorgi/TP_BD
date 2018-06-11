@@ -7,7 +7,7 @@ BEGIN
         rtaTS = to_timestamp(fecha_hora_retiro, 'DD/MM/YYYY HH24:MI:SS');
 		RETURN rtaTS;
 END;
-$$ LANGUAGE plpgSQL;
+$$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
 
@@ -27,7 +27,7 @@ BEGIN
        
 		RETURN rtaTS;
 END;
-$$ LANGUAGE plpgSQL;
+$$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION tiempo_uso_al_formato_correcto(tiempo_uso TEXT)
@@ -56,7 +56,7 @@ BEGIN
         
         RETURN rtaTXT;
 END;
-$$ LANGUAGE PLPGSQL; 
+$$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_devolucion(fecha_hora_retiro TEXT, tiempo_uso TEXT)
@@ -71,7 +71,7 @@ BEGIN
        	rtaTS = conversion_a_timestamp_fecha_hora_devolucion(tiempo_uso_text_formato_ok, fecha_hora_retiro_ts);
        	RETURN rtaTS;
 END;
-$$ LANGUAGE PLPGSQL; 
+$$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_retiro(fecha_hora_retiro TEXT)
@@ -82,7 +82,7 @@ BEGIN
         rtaTS = conversion_a_timestamp_fecha_hora_retiro(fecha_hora_retiro);
         RETURN rtaTS;
 END;
-$$ LANGUAGE PLPGSQL;
+$$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
 CREATE OR REPLACE FUNCTION firstRestriction() RETURNS Trigger
