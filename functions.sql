@@ -10,6 +10,24 @@ END;
 $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
+CREATE OR REPLACE FUNCTION crear_fecha_hora_devolucion(tiempo_uso TIME, fecha_hora_retiro TIMESTAMP)
+RETURNS TIMESTAMP 
+AS $$
+
+DECLARE
+        rtaTS TIMESTAMP;
+        intervalo_auxiliar INTERVAL;
+BEGIN
+        
+
+		intervalo_auxiliar = tiempo_uso + (tiempo_uso-tiempo_uso);	
+        rtaTS = fecha_hora_retiro + intervalo_auxiliar;
+       
+		RETURN rtaTS;
+END;
+$$ LANGUAGE plpgSQL
+RETURNS NULL ON NULL INPUT;
+
 
 CREATE OR REPLACE FUNCTION conversion_a_timestamp_fecha_hora_devolucion(tiempo_uso TEXT, fecha_hora_retiro TIMESTAMP)
 RETURNS TIMESTAMP 
@@ -90,29 +108,25 @@ AS $$
 BEGIN
     IF new.usuario IS NULL THEN
         raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                            ,new.est_destino,new.fecha_hora_dev;
+                                                            ,new.est_destino, new.tiempo_uso;
         raise notice 'El campo usuario era NULL';
         return NULL;
     ELSEIF new.fecha_hora_ret IS NULL THEN
         raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                      ,new.est_destino,new.fecha_hora_dev;
+                                                      ,new.est_destino, new.tiempo_uso;
         raise notice 'El campo fecha_hora_ret era NULL';
         return NULL;
     ELSEIF new.est_origen IS NULL THEN
         raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                      ,new.est_destino,new.fecha_hora_dev;
+                                                      ,new.est_destino, new.tiempo_uso;
         raise notice 'El campo est_origen era NULL';
         return NULL;
     ELSEIF new.est_destino IS NULL THEN
         raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                      ,new.est_destino,new.fecha_hora_dev;
+                                                      ,new.est_destino, new.tiempo_uso;
         raise notice 'El campo est_destino era NULL';
         return NULL;
-    ELSEIF new.fecha_hora_dev IS NULL THEN
-        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                      ,new.est_destino,new.fecha_hora_dev;
-        raise notice 'El campo fecha_hora_dev era NULL';
-        return NULL;
+
     ELSE
         return new;
     END IF;
@@ -120,31 +134,103 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER checkFirstRestriction
- BEFORE INSERT ON recorrido_final
+ BEFORE INSERT ON auxi
  FOR EACH ROW
  EXECUTE PROCEDURE firstRestriction();
  
- /*
- CREATE TRIGGER checkSecondRestriction
- BEFORE INSERT ON recorrido_final
- FOR EACH ROW
- EXECUTE PROCEDURE secondRestriction(); */
+        CREATE OR REPLACE FUNCTION LIMPIA_REPETIDOS() 
+        RETURNS VOID AS $$
+        
+        DECLARE 
+            REP RECORD;
+            cursor1 CURSOR FOR SELECT DISTINCT usuario, fecha_hora_ret FROM auxi;            
+        
+        begin
+            open cursor1;
+            LOOP
+                FETCH cursor1 INTO REP;
+                EXIT WHEN NOT FOUND;
+                PERFORM GUARDA(REP.usuario, REP.fecha_hora_ret);
+            END LOOP;
+            CLOSE cursor1;
+        end;
+        
+        $$ LANGUAGE PLPGSQL;
+        
+        
+        
+        CREATE OR REPLACE FUNCTION GUARDA
+        (myid auxi.usuario%TYPE, my_time auxi.fecha_hora_ret%type) RETURNS VOID AS $$
+        
+        
+        DECLARE
+            mycursor CURSOR FOR
+            SELECT * FROM auxi
+            WHERE myid = usuario AND my_time = fecha_hora_ret
+            ORDER BY tiempo_uso ASC;
+            CANT INT;
+            devolucion TIMESTAMP;
+            mystruct RECORD;
+            mystruct2 RECORD;
+            
+        
+        BEGIN
+        
+         OPEN mycursor;
+         CANT = 0;
+                FETCH mycursor INTO mystruct;
+                        FETCH mycursor INTO mystruct2;
+                        
+                                IF mystruct2.usuario = mystruct.usuario AND mystruct2.fecha_hora_ret = mystruct.fecha_hora_ret THEN
+                                         devolucion = crear_fecha_hora_devolucion(mystruct2.tiempo_uso, mystruct2.fecha_hora_ret);
+                                         INSERT INTO RECORRIDO_FINAL VALUES(mystruct2.periodo, mystruct2.usuario, mystruct2.fecha_hora_ret, mystruct2.est_origen, mystruct2.est_origen, devolucion);
+                                
+                                ELSE
+                                        devolucion = crear_fecha_hora_devolucion(mystruct.tiempo_uso, mystruct.fecha_hora_ret);
+                                        INSERT INTO RECORRIDO_FINAL VALUES(mystruct.periodo, mystruct.usuario, mystruct.fecha_hora_ret, mystruct.est_origen, mystruct.est_origen, devolucion);
+                                
+                                END IF;
+
+                
+         CLOSE mycursor;   
+                
+       END;
+       $$ LANGUAGE PLPGSQL; 
+ 
 
 
-CREATE OR REPLACE FUNCTION migracion()
+CREATE OR REPLACE FUNCTION cond1()
 RETURNS VOID AS $$
+
 DECLARE         
         fecha_h_r TIMESTAMP;
         fecha_h_d TIMESTAMP;   
 BEGIN  
-	    INSERT INTO recorrido_final
+	    INSERT INTO auxi
 	    SELECT periodo, id_usuario, conversion_de_tipos_retiro(fecha_hora_retiro), 
-	    	origen_estacion, destino_estacion, conversion_de_tipos_devolucion(fecha_hora_retiro, tiempo_uso)
+	    	origen_estacion, destino_estacion, to_timestamp(tiempo_uso_al_formato_correcto(tiempo_uso), 'HH24:MI:SS')
 	    FROM datos_recorrido;
 	  
 END;
 $$ LANGUAGE PLPGSQL;
 
+CREATE OR REPLACE FUNCTION cond2()
+RETURNS VOID AS $$
+BEGIN  
+	    PERFORM LIMPIA_REPETIDOS();	  
+END;
+$$ LANGUAGE PLPGSQL;
+
+
+CREATE OR REPLACE FUNCTION migracion()
+RETURNS VOID AS $$
+
+BEGIN
+  PERFORM cond1();
+  PERFORM cond2();
+  
+END;
+$$ LANGUAGE PLPGSQL;
 
 
 DO $$

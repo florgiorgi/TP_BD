@@ -25,6 +25,25 @@ tiempo_uso              TEXT,
 fecha_creacion          DATE
 );
 
+CREATE TABLE auxi
+(periodo TEXT,
+usuario INTEGER,
+fecha_hora_ret TIMESTAMP NOT NULL,
+est_origen INTEGER NOT NULL,
+est_destino INTEGER NOT NULL,
+tiempo_uso TIME,
+PRIMARY KEY(usuario,fecha_hora_ret, tiempo_uso));
+
+CREATE TABLE recorrido_final
+(periodo TEXT,
+usuario INTEGER,
+fecha_hora_ret TIMESTAMP NOT NULL,
+est_origen INTEGER NOT NULL,
+est_destino INTEGER NOT NULL,
+fecha_hora_dev TIMESTAMP NOT NULL CHECK(fecha_hora_dev >=
+fecha_hora_ret),
+PRIMARY KEY(usuario,fecha_hora_ret));
+
 -- 7) En la terminal que tenemos abierta: PROOF => \copy datos_recorrido FROM '/home/rdella/test1.csv' csv header delimiter ';' NULL 'NULL';
 
 \copy datos_recorrido FROM 'path-archivo-remoto' csv header delimiter ';' NULL 'NULL';
