@@ -22,7 +22,7 @@ nombre_origen           TEXT,
 destino_estacion        INTEGER,
 nombre_destino          TEXT,
 tiempo_uso              TEXT,
-fecha_creacion          DATE
+fecha_creacion          TEXT
 );
 
 CREATE TABLE auxi
@@ -32,7 +32,7 @@ fecha_hora_ret TIMESTAMP NOT NULL,
 est_origen INTEGER NOT NULL,
 est_destino INTEGER NOT NULL,
 tiempo_uso TIME,
-PRIMARY KEY(usuario,fecha_hora_ret, tiempo_uso));
+PRIMARY KEY(periodo, usuario,fecha_hora_ret,est_origen, est_destino, tiempo_uso));
 
 CREATE TABLE recorrido_final
 (periodo TEXT,
@@ -45,5 +45,13 @@ fecha_hora_ret),
 PRIMARY KEY(usuario,fecha_hora_ret));
 
 -- 7) En la terminal que tenemos abierta: PROOF => \copy datos_recorrido FROM '/home/rdella/test1.csv' csv header delimiter ';' NULL 'NULL';
-
+HACER
+ SET datestyle = dmy;
+ 
+ 
+ Y DESPS:
+ 
 \copy datos_recorrido FROM 'path-archivo-remoto' csv header delimiter ';' NULL 'NULL';
+
+EL QUE ANDA ES:
+\copy datos_recorrido FROM 'path-archivo-remoto' header delimiter ';' csv;
