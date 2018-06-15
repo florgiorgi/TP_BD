@@ -103,7 +103,8 @@ END;
 $$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
-CREATE OR REPLACE FUNCTION isNULL(field anyelement, information TEXT) RETURNS boolean
+CREATE OR REPLACE FUNCTION isNULL(field anyelement, information TEXT) 
+RETURNS boolean
 AS $$
 BEGIN
     IF field IS NULL THEN
@@ -115,15 +116,33 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION isLessThanZero(field TIME, information TEXT) RETURNS boolean
+CREATE OR REPLACE FUNCTION isDate(timeString TEXT) 
+RETURNS boolean 
+AS $$
+begin
+  perform timeString::time;
+  return true;
+exception when others then
+  return false;
+end;
+$$ language plpgsql;
+
+CREATE OR REPLACE FUNCTION isCorrectTime(field anyelement, information TEXT) 
+RETURNS boolean
 AS $$
 DECLARE
     hours INTEGER;
     minutes INTEGER;
     seconds INTEGER;
     total_seconds INTEGER;
+    timeString TEXT = to_char(field, 'HH:MM:SS');
 BEGIN
     IF field IS NULL THEN
+        raise notice 'El campo % es NULL', information;
+        return true;
+    END IF;
+    IF isDate(timeString) = false THEN
+        raise notice 'El campo % no es un dato de tipo TIME', information;
         return true;
     END IF;
     SELECT (EXTRACT( HOUR FROM  field::time) * 60*60) INTO hours; 
@@ -139,7 +158,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION firstRestriction() RETURNS Trigger
+CREATE OR REPLACE FUNCTION firstRestriction() 
+RETURNS Trigger
 AS $$
 DECLARE
     operation boolean = false;
@@ -149,8 +169,7 @@ BEGIN
     operation = operation OR isNULL(new.fecha_hora_ret, 'fecha_hora_ret');
     operation = operation OR isNULL(new.est_origen, 'est_origen');
     operation = operation OR isNULL(new.est_destino, 'est_destino');
-    operation = operation OR isNULL(new.tiempo_uso, 'tiempo_uso');
-    operation = operation OR isLessThanZero(new.tiempo_uso, 'tiempo_uso');
+    operation = operation OR isCorrectTime(new.tiempo_uso, 'tiempo_uso');
     
     IF operation THEN
         raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
