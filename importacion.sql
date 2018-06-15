@@ -15,24 +15,29 @@ SET datestyle = "ISO, DMY";
 
 CREATE TABLE datos_recorrido
 (periodo                TEXT,
-id_usuario              INTEGER,
+id_usuario              TEXT,
 fecha_hora_retiro       TEXT,
-origen_estacion         INTEGER,
+origen_estacion         TEXT,
 nombre_origen           TEXT,
-destino_estacion        INTEGER,
+destino_estacion        TEXT,
 nombre_destino          TEXT,
 tiempo_uso              TEXT,
 fecha_creacion          TEXT
 );
 
 CREATE TABLE auxi
-(periodo TEXT,
-usuario INTEGER,
-fecha_hora_ret TIMESTAMP NOT NULL,
-est_origen INTEGER NOT NULL,
-est_destino INTEGER NOT NULL,
-tiempo_uso TIME,
-PRIMARY KEY(periodo, usuario,fecha_hora_ret,est_origen, est_destino, tiempo_uso));
+(
+	periodo TEXT,
+  	id_usuario TEXT,
+  	fecha_hora_retiro TEXT,
+  	origen_estacion TEXT,
+  	nombre_origen TEXT,
+  	destino_estacion TEXT,
+  	nombre_destino TEXT,
+  	tiempo_uso TEXT,
+  	fecha_creacion TEXT
+);
+
 
 CREATE TABLE recorrido_final
 (periodo TEXT,
