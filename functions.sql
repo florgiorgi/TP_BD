@@ -103,30 +103,59 @@ END;
 $$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
-CREATE OR REPLACE FUNCTION firstRestriction() RETURNS Trigger
+CREATE OR REPLACE FUNCTION isNULL(field anyelement, information TEXT) RETURNS boolean
 AS $$
 BEGIN
-    IF new.usuario IS NULL THEN
-        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                            ,new.est_destino, new.tiempo_uso;
-        raise notice 'El campo usuario era NULL';
-        return NULL;
-    ELSEIF new.fecha_hora_ret IS NULL THEN
-        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                      ,new.est_destino, new.tiempo_uso;
-        raise notice 'El campo fecha_hora_ret era NULL';
-        return NULL;
-    ELSEIF new.est_origen IS NULL THEN
-        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                      ,new.est_destino, new.tiempo_uso;
-        raise notice 'El campo est_origen era NULL';
-        return NULL;
-    ELSEIF new.est_destino IS NULL THEN
-        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
-                                                      ,new.est_destino, new.tiempo_uso;
-        raise notice 'El campo est_destino era NULL';
-        return NULL;
+    IF field IS NULL THEN
+        raise notice 'El campo % es NULL', information;
+        return true;
+    ELSE
+        return false;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION isLessThanZero(field TIME, information TEXT) RETURNS boolean
+AS $$
+DECLARE
+    hours INTEGER;
+    minutes INTEGER;
+    seconds INTEGER;
+    total_seconds INTEGER;
+BEGIN
+    IF field IS NULL THEN
+        return true;
+    END IF;
+    SELECT (EXTRACT( HOUR FROM  field::time) * 60*60) INTO hours; 
+    SELECT (EXTRACT (MINUTES FROM field::time) * 60) INTO minutes;
+    SELECT (EXTRACT (SECONDS from field::time)) INTO seconds;
+    SELECT (hours + minutes + seconds) INTO total_seconds;
+    IF  total_seconds <= 0 THEN
+        raise notice 'El campo % es un tiempo erroneo', information;
+        return true;
+    ELSE
+          return false;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION firstRestriction() RETURNS Trigger
+AS $$
+DECLARE
+    operation boolean = false;
+BEGIN
+    operation = operation OR isNULL(new.periodo, 'periodo');
+    operation = operation OR isNULL(new.usuario, 'usuario');
+    operation = operation OR isNULL(new.fecha_hora_ret, 'fecha_hora_ret');
+    operation = operation OR isNULL(new.est_origen, 'est_origen');
+    operation = operation OR isNULL(new.est_destino, 'est_destino');
+    operation = operation OR isNULL(new.tiempo_uso, 'tiempo_uso');
+    operation = operation OR isLessThanZero(new.tiempo_uso, 'tiempo_uso');
+    
+    IF operation THEN
+        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
+                                                       ,new.est_destino, new.tiempo_uso; 
+        return NULL;
     ELSE
         return new;
     END IF;
