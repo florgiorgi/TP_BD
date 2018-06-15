@@ -43,6 +43,7 @@ AS $$
 DECLARE
     operation boolean = false;
 BEGIN
+    RAISE NOTICE 'HERE %',operation;
     operation = operation OR isNULL(new.periodo, 'periodo');
     operation = operation OR isNULL(new.id_usuario, 'id_usuario');
     operation = operation OR isNULL(new.fecha_hora_retiro, 'fecha_hora_retiro');
@@ -56,8 +57,7 @@ BEGIN
                                                        ,new.destino_estacion, new.tiempo_uso; 
         return NULL;
     ELSE
-     raise notice 'INSERTANDO ',new.periodo, new.id_usuario, new.fecha_hora_retiro,new.origen_estacion 
-                                                       ,new.destino_estacion, new.tiempo_uso; 
+
         return new;
     END IF;
 END;
