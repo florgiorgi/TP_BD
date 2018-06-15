@@ -116,17 +116,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION isDate(timeString TEXT) 
-RETURNS boolean 
-AS $$
-begin
-  perform timeString::time;
-  return true;
-exception when others then
-  return false;
-end;
-$$ language plpgsql;
-
 CREATE OR REPLACE FUNCTION isCorrectTime(field anyelement, information TEXT) 
 RETURNS boolean
 AS $$
@@ -141,10 +130,7 @@ BEGIN
         raise notice 'El campo % es NULL', information;
         return true;
     END IF;
-    IF isDate(timeString) = false THEN
-        raise notice 'El campo % no es un dato de tipo TIME', information;
-        return true;
-    END IF;
+
     SELECT (EXTRACT( HOUR FROM  field::time) * 60*60) INTO hours; 
     SELECT (EXTRACT (MINUTES FROM field::time) * 60) INTO minutes;
     SELECT (EXTRACT (SECONDS from field::time)) INTO seconds;
