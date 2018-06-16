@@ -250,7 +250,65 @@ EXECUTE PROCEDURE primeraRestriccion();
                 
        END;
        $$ LANGUAGE PLPGSQL; 
- 
+       
+       
+       
+       
+       
+ CREATE OR REPLACE FUNCTION problemaSolapados(usuario_id INTEGER) RETURNS INTEGER
+AS $$
+
+DECLARE
+
+	cursorSolap CURSOR FOR
+	SELECT * FROM auxi
+	WHERE usuario = usuario_id
+	ORDER BY fecha_hora_ret ASC;
+	structSolap auxi;
+	
+	origen INTEGER;
+	destino INTEGER;
+	periodo TEXT;
+    
+    fechaRetiro TIMESTAMP;
+	fechaDevolucion TIMESTAMP;
+
+
+BEGIN
+
+		OPEN cursorSolap;
+		FETCH cursorSolap INTO structSolap;
+
+		LOOP
+
+			EXIT WHEN structSolap ISNULL;
+            
+            origen = structSolap.est_origen;
+            destino = structSolap.est_destino;
+			periodo = structSolap.periodo;
+            
+			fechaRetiro = structSolap.fecha_hora_ret;
+			fechaDevolucion = structSolap.fecha_hora_dev;
+			
+			
+
+			LOOP
+
+                FETCH cursorSolap INTO structSolap;
+                EXIT WHEN NOT FOUND OR structSolap.fecha_hora_ret > fechaFinal;
+                fechaFinal = structSolap.fecha_hora_dev;
+                maxEstacion = structSolap.est_destino;
+
+			END LOOP;
+
+			INSERT INTO recorrido_final VALUES(periodo, usuario_id, fechaRetiro, origen, destino, fechaDevolucion);
+
+		END LOOP;
+		CLOSE cursorSolap;
+        
+RETURN 1;
+END;
+$$ LANGUAGE plpgSQL;
 
 
 CREATE OR REPLACE FUNCTION cond1()
@@ -274,6 +332,29 @@ BEGIN
 	    PERFORM LIMPIA_REPETIDOS();	  
 END;
 $$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION cond3() RETURNS VOID
+AS $$
+DECLARE
+
+		id INTEGER;
+ 		cursor3 CURSOR FOR
+		SELECT DISTINCT usuario FROM auxi;
+
+BEGIN
+		OPEN cursor3;
+		LOOP
+
+			FETCH cursor3 INTO value;
+			EXIT WHEN NOT FOUND;
+			PERFORM problemaSolapados(id);
+
+		END LOOP;
+		CLOSE cursor3;
+
+		RETURN 1;
+END;
+$$ LANGUAGE plpgSQL;
 
 
 
@@ -324,6 +405,9 @@ BEGIN
   PERFORM cond2();
   /* condicion 3 */
   PERFORM triggerSolap();
+  /* DROP TABLE datos_recorrido */
+  /* DROP TABLE auxi */
+  /* DROP TABLE auxi2 */
   
 END;
 $$ LANGUAGE PLPGSQL;
