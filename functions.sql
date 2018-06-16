@@ -239,13 +239,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
+--TRIGGER--
 CREATE TRIGGER chequearPrimeraRestriccion
 BEFORE INSERT ON auxi
 FOR EACH ROW
 EXECUTE PROCEDURE primeraRestriccion();
 
- 
+
+--Funcion limpia_repetidos--
+--Parametros: --
+--Retorno: --
+--Uso: Se encarga agrupar aquellas tuplas en auxi que tengan identico id y fecha de retiro--
+--  con el fin de pasarle los datos a segundo para que la inserte en la tabla aux2--  
 CREATE OR REPLACE FUNCTION limpia_repetidos() 
 RETURNS VOID AS $$
         
@@ -271,6 +276,11 @@ END;
 $$ LANGUAGE PLPGSQL;
 
         
+--Funcion agrego_faltantes--
+--Parametros: @myid, @my_time --
+--Retorno: --
+--Uso: Se encarga agregar a aux2 las tuplas que corresponden--
+--  con los segundos de aquellos que tienen identico id y fecha de retiro--  
 CREATE OR REPLACE FUNCTION segundo(myid auxi.usuario%TYPE, my_time auxi.fecha_hora_ret%type) 
 RETURNS VOID AS $$
                
@@ -298,7 +308,12 @@ END;
 $$ LANGUAGE PLPGSQL;
        
        
-       
+--Funcion agrego_faltantes--
+--Parametros: --
+--Retorno: --
+--Uso: Se encarga agregar a aux2 las tuplas que faltan, es decir
+--    que no fueron tenidas en cuenta en la funcion segundo--  
+
 CREATE OR REPLACE FUNCTION agrego_faltantes() 
 RETURNS VOID AS $$
         
@@ -313,6 +328,7 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
        
+
 --Funcion problemaSolapados--
 --Parametros: @usuario_id es el usuario al que vamos a buscarle problemas de solapamiento--
 --Retorno: --
@@ -441,7 +457,7 @@ DECLARE
     
 BEGIN
 	SELECT count(*) INTO cant
-	FROM RECORRIDO_FINAL
+	FROM recorrido_final
 	WHERE usuario = new.usuario AND (fecha_hora_ret <= new.fecha_hora_dev) AND (fecha_hora_dev >= new.fecha_hora_ret);
 
 	IF (cant > 0) THEN
