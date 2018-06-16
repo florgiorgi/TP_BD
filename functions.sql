@@ -62,9 +62,9 @@ DECLARE
         posicion_seg INTEGER;
 
 BEGIN
-        posicion_h = posicion('H' IN tiempo_uso); 
-        posicion_m = posicion('M' IN tiempo_uso); 
-        posicion_seg = posicion('S' IN tiempo_uso);
+        posicion_h = position('H' IN tiempo_uso); 
+        posicion_m = position('M' IN tiempo_uso); 
+        posicion_seg = position('S' IN tiempo_uso);
        
         hora = substring(tiempo_uso FROM 1 FOR posicion_h-1 ); 
         minu = substring(tiempo_uso FROM posicion_h + 2 FOR  posicion_m - (posicion_h + 2) );
@@ -108,7 +108,7 @@ RETURNS NULL ON NULL INPUT;
 --Retorno: True si el campo es null, false sino--
 --Uso: Se encarga de chequear que el campo @field no sea null--
 
-CREATE OR REPLACE FUNCTION esNULL(field un_elemento, informacion TEXT) 
+CREATE OR REPLACE FUNCTION esNULL(field anyelement, informacion TEXT) 
 RETURNS boolean
 AS $$
 BEGIN
@@ -127,7 +127,7 @@ $$ LANGUAGE plpgsql;
 --Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
 --     represente un intervalo de tiempo mayor a cero--
 
-CREATE OR REPLACE FUNCTION esCorrectoTime(field un_elemento, informacion TEXT) 
+CREATE OR REPLACE FUNCTION esCorrectoTime(field anyelement, informacion TEXT) 
 RETURNS boolean
 AS $$
 DECLARE
@@ -174,7 +174,7 @@ BEGIN
     operacion = operacion OR esNULL(new.est_destino, 'est_destino');
     operacion = operacion OR esCorrectoTime(new.tiempo_uso, 'tiempo_uso');
     
-    IF operation THEN
+    IF operacion THEN
         RAISE NOTICE 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
                                                        ,new.est_destino, new.tiempo_uso; 
         RETURN NULL;
@@ -256,10 +256,10 @@ EXECUTE PROCEDURE primeraRestriccion();
        
  --Funcion problemaSolapados--
 --Parametros: @usuario_id es el usuario al que vamos a buscarle problemas de solapamiento--
---Retorno: retorna 1 si ejecuto sin problemas --
+--Retorno: Nada --
 --Uso: Se encarga de juntar tuplas solapadas e insertarlas en recorrido_final--  
 
- CREATE OR REPLACE FUNCTION problemaSolapados(usuario_id INTEGER) RETURNS INTEGER
+ CREATE OR REPLACE FUNCTION problemaSolapados(usuario_id INTEGER) RETURNS VOID
 AS $$
 
 DECLARE
@@ -310,7 +310,7 @@ BEGIN
 		END LOOP;
 		CLOSE cursorSolap;
         
-RETURN 1;
+
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -406,7 +406,7 @@ RETURNS VOID AS $$
 BEGIN
   PERFORM cond1();
   PERFORM cond2();
-  /* condicion 3 */
+  PERFORM cond3();
   PERFORM triggerSolap();
   /* DROP TABLE datos_recorrido */
   /* DROP TABLE auxi */
