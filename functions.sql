@@ -103,12 +103,12 @@ END;
 $$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
---Funcion isNULL--
+--Funcion esNULL--
 --Parametros: @field representa un campo de la tupla a revisar, @information representa el texto para el mensaje de error--
 --Retorno: True si el campo es null, false sino--
 --Uso: Se encarga de chequear que el campo @field no sea null--
 
-CREATE OR REPLACE FUNCTION isNULL(field un_elemento, informacion TEXT) 
+CREATE OR REPLACE FUNCTION esNULL(field un_elemento, informacion TEXT) 
 RETURNS boolean
 AS $$
 BEGIN
@@ -165,17 +165,17 @@ CREATE OR REPLACE FUNCTION primeraRestriccion()
 RETURNS Trigger
 AS $$
 DECLARE
-    operation BOOLEAN = false;
+    operacion BOOLEAN = false;
 BEGIN
-    operation = operation OR isNULL(new.periodo, 'periodo');
-    operation = operation OR isNULL(new.usuario, 'usuario');
-    operation = operation OR isNULL(new.fecha_hora_ret, 'fecha_hora_ret');
-    operation = operation OR isNULL(new.est_origen, 'est_origen');
-    operation = operation OR isNULL(new.est_destino, 'est_destino');
-    operation = operation OR esCorrectoTime(new.tiempo_uso, 'tiempo_uso');
+    operacion = operacion OR esNULL(new.periodo, 'periodo');
+    operacion = operacion OR esNULL(new.usuario, 'usuario');
+    operacion = operacion OR esNULL(new.fecha_hora_ret, 'fecha_hora_ret');
+    operacion = operacion OR esNULL(new.est_origen, 'est_origen');
+    operacion = operacion OR esNULL(new.est_destino, 'est_destino');
+    operacion = operacion OR esCorrectoTime(new.tiempo_uso, 'tiempo_uso');
     
     IF operation THEN
-        raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
+        RAISE NOTICE 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
                                                        ,new.est_destino, new.tiempo_uso; 
         RETURN NULL;
     ELSE
