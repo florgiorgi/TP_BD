@@ -1,8 +1,7 @@
 --Funcion conversion_a_timestamp_fecha_hora_retiro--
---Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
---Retorno: True si el campo esta mal, false sino--
---Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
---     represente un intervalo de tiempo mayor a cero--
+--Parametros: @fecha_hora_retiro--
+--Retorno: La fecha ingresada en TIMESTAMP, NULL si el parametro es NULL--
+--Uso: Se encarga de convertir un TEXT a TIMESTAMP--
 
 CREATE OR REPLACE FUNCTION conversion_a_timestamp_fecha_hora_retiro(fecha_hora_retiro TEXT)
 RETURNS TIMESTAMP 
@@ -21,10 +20,9 @@ RETURNS NULL ON NULL INPUT;
 
 
 --Funcion crear_fecha_hora_devolucion--
---Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
---Retorno: True si el campo esta mal, false sino--
---Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
---     represente un intervalo de tiempo mayor a cero--
+--Parametros: @tiempo_uso, @fecha_hora_retiro--
+--Retorno: La fecha creada en TIMESTAMP, NULL si los parametros son NULL--
+--Uso: Se encarga de crear un nuevo campo a partir de los valores de @tiempo_uso y @fecha_hora_retiro--
 
 CREATE OR REPLACE FUNCTION crear_fecha_hora_devolucion(tiempo_uso TIME, fecha_hora_retiro TIMESTAMP)
 RETURNS TIMESTAMP 
@@ -44,11 +42,10 @@ $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
 
---Funcion esCorrectoTime--
---Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
---Retorno: True si el campo esta mal, false sino--
---Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
---     represente un intervalo de tiempo mayor a cero--
+--Funcion conversion_a_timestamp_fecha_hora_devolucion--
+--Parametros: @tiempo_uso, @fecha_hora_retiro--
+--Retorno: La fecha ingresada en TIMESTAMP, NULL si los parametros son NULL--
+--Uso: Se encarga de crear un nuevo campo a partir de los valores de @tiempo_uso y @fecha_hora_retiro--
 
 CREATE OR REPLACE FUNCTION conversion_a_timestamp_fecha_hora_devolucion(tiempo_uso TEXT, fecha_hora_retiro TIMESTAMP)
 RETURNS TIMESTAMP 
@@ -70,11 +67,11 @@ $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
 
---Funcion esCorrectoTime--
---Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
---Retorno: True si el campo esta mal, false sino--
---Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
---     represente un intervalo de tiempo mayor a cero--
+--Funcion tiempo_uso_al_formato_correcto--
+--Parametros: @tiempo_uso--
+--Retorno: El tiempo de uso al formato correcto 00:00:00, NULL si el parametro es NULL--
+--Uso: Se encarga de pasar el campo @tiempo_uso al formato correcto para la tabla final--
+--      desglosando el TEXT que llega por parametro--
 
 CREATE OR REPLACE FUNCTION tiempo_uso_al_formato_correcto(tiempo_uso TEXT)
 RETURNS TEXT AS $$
@@ -107,11 +104,10 @@ $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
 
---Funcion esCorrectoTime--
---Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
---Retorno: True si el campo esta mal, false sino--
---Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
---     represente un intervalo de tiempo mayor a cero--
+--Funcion conversion_de_tipos_devolucion--
+--Parametros: @fecha_hora_retiro, @tiempo_uso--
+--Retorno: La fecha convertida en TIMESTAMP--
+--Uso: Se encarga de convertir dos TEXT a TIMESTAMP--
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_devolucion(fecha_hora_retiro TEXT, tiempo_uso TEXT)
 RETURNS TIMESTAMP AS $$
@@ -132,11 +128,10 @@ $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
 
---Funcion esCorrectoTime--
---Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
---Retorno: True si el campo esta mal, false sino--
---Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
---     represente un intervalo de tiempo mayor a cero--
+--Funcion conversion_de_tipos_retiro--
+--Parametros: @fecha_hora_retiro--
+--Retorno: La fecha convertida en TIMESTAMP--
+--Uso: Se encarga de convertir dos TEXT a TIMESTAMP--
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_retiro(fecha_hora_retiro TEXT)
 RETURNS TIMESTAMP AS $$
@@ -249,8 +244,9 @@ CREATE TRIGGER chequearPrimeraRestriccion
 BEFORE INSERT ON auxi
 FOR EACH ROW
 EXECUTE PROCEDURE primeraRestriccion();
+
  
-CREATE OR REPLACE FUNCTION LIMPIA_REPETIDOS() 
+CREATE OR REPLACE FUNCTION limpia_repetidos() 
 RETURNS VOID AS $$
         
 DECLARE 
@@ -267,7 +263,7 @@ BEGIN
     LOOP
         FETCH cursor1 INTO REP;
         EXIT WHEN NOT FOUND;
-        PERFORM SEGUNDO(REP.usuario, REP.fecha_hora_ret);
+        PERFORM segundo(REP.usuario, REP.fecha_hora_ret);
         END LOOP;
     CLOSE cursor1;  
 
@@ -275,7 +271,7 @@ END;
 $$ LANGUAGE PLPGSQL;
 
         
-CREATE OR REPLACE FUNCTION SEGUNDO(myid auxi.usuario%TYPE, my_time auxi.fecha_hora_ret%type) 
+CREATE OR REPLACE FUNCTION segundo(myid auxi.usuario%TYPE, my_time auxi.fecha_hora_ret%type) 
 RETURNS VOID AS $$
                
 DECLARE
@@ -317,9 +313,9 @@ BEGIN
 END;
 $$ LANGUAGE PLPGSQL;
        
- --Funcion problemaSolapados--
+--Funcion problemaSolapados--
 --Parametros: @usuario_id es el usuario al que vamos a buscarle problemas de solapamiento--
---Retorno: Nada --
+--Retorno: --
 --Uso: Se encarga de juntar tuplas solapadas e insertarlas en recorrido_final--  
 
 CREATE OR REPLACE FUNCTION problemaSolapados(usuario_id INTEGER) RETURNS VOID
@@ -392,7 +388,7 @@ CREATE OR REPLACE FUNCTION cond2()
 RETURNS VOID AS $$
 
 BEGIN  
-    PERFORM LIMPIA_REPETIDOS();
+    PERFORM limpia_repetidos();
     PERFORM agrego_faltantes(); 
 
 END;
@@ -427,14 +423,14 @@ BEGIN
 	CREATE TRIGGER detecta_solapado BEFORE INSERT ON RECORRIDO_FINAL
 	FOR EACH ROW
 	EXECUTE PROCEDURE detecta_solapado();
-    
+
 END;
 
 $$ LANGUAGE plpgsql;
 
 
 --Funcion detecta_solapado--
---Parametros: ninguno--
+--Parametros: --
 --Retorno: Trigger --
 --Uso: Comprueba que no se viole condicion de solapamiento en una nueva insercion--
 CREATE OR REPLACE FUNCTION detecta_solapado()
