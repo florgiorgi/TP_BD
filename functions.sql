@@ -132,22 +132,22 @@ RETURNS boolean
 AS $$
 DECLARE
     horas INTEGER;
-    minutus INTEGER;
+    minutos INTEGER;
     segundos INTEGER;
     total_segundos INTEGER;
     timeString TEXT = to_char(field, 'HH:MM:SS');
 BEGIN
     IF field IS NULL THEN
-        raise notice 'El campo % es NULL', informacion;
+        RAISE NOTICE 'El campo % es NULL', informacion;
         RETURN true;
     END IF;
 
     SELECT (EXTRACT( HOUR FROM  field::time) * 60*60) INTO horas; 
     SELECT (EXTRACT (MINUTES FROM field::time) * 60) INTO minutos;
     SELECT (EXTRACT (SECONDS FROM field::time)) INTO segundos;
-    SELECT (hours + minutes + seconds) INTO total_segundos;
-    IF  total_seconds <= 0 THEN
-        raise notice 'El campo % es un tiempo erroneo', informacion;
+    SELECT (horas + minutos + segundos) INTO total_segundos;
+    IF  total_segundos <= 0 THEN
+        RAISE NOTICE 'El campo % es un tiempo erroneo', informacion;
         RETURN true;
     ELSE
           RETURN false;
