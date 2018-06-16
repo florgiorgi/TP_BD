@@ -54,9 +54,7 @@ fecha_hora_dev TIMESTAMP NOT NULL CHECK(fecha_hora_dev >=
 fecha_hora_ret),
 PRIMARY KEY(usuario,fecha_hora_ret));
 
--- 7) En la terminal que tenemos abierta: PROOF => \copy datos_recorrido FROM '/home/rdella/test1.csv' csv header delimiter ';' NULL 'NULL';
-HACER
- SET datestyle = dmy;
- 
- 
+-- 7) En la terminal que tenemos abierta: PROOF =>
+
+SET datestyle = dmy; 
 \copy datos_recorrido FROM 'path-archivo-remoto' header delimiter ';' csv;

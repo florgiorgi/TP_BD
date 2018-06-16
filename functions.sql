@@ -1,107 +1,157 @@
+--Funcion conversion_a_timestamp_fecha_hora_retiro--
+--Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo esta mal, false sino--
+--Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
+--     represente un intervalo de tiempo mayor a cero--
+
 CREATE OR REPLACE FUNCTION conversion_a_timestamp_fecha_hora_retiro(fecha_hora_retiro TEXT)
 RETURNS TIMESTAMP 
 AS $$
+
 DECLARE
-        rtaTS TIMESTAMP;
+    rtaTS TIMESTAMP;
+
 BEGIN
-        rtaTS = to_timestamp(fecha_hora_retiro, 'DD/MM/YYYY HH24:MI:SS');
-		RETURN rtaTS;
+    rtaTS = to_timestamp(fecha_hora_retiro, 'DD/MM/YYYY HH24:MI:SS');
+	RETURN rtaTS;
+
 END;
 $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
+
+
+--Funcion crear_fecha_hora_devolucion--
+--Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo esta mal, false sino--
+--Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
+--     represente un intervalo de tiempo mayor a cero--
 
 CREATE OR REPLACE FUNCTION crear_fecha_hora_devolucion(tiempo_uso TIME, fecha_hora_retiro TIMESTAMP)
 RETURNS TIMESTAMP 
 AS $$
 
 DECLARE
-        rtaTS TIMESTAMP;
-        intervalo_auxiliar INTERVAL;
-BEGIN
-        
+    rtaTS TIMESTAMP;
+    intervalo_auxiliar INTERVAL;
 
-		intervalo_auxiliar = tiempo_uso + (tiempo_uso-tiempo_uso);	
-        rtaTS = fecha_hora_retiro + intervalo_auxiliar;
-       
-		RETURN rtaTS;
+BEGIN
+	intervalo_auxiliar = tiempo_uso + (tiempo_uso-tiempo_uso);	
+    rtaTS = fecha_hora_retiro + intervalo_auxiliar;
+	RETURN rtaTS;
+
 END;
 $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
+
+--Funcion esCorrectoTime--
+--Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo esta mal, false sino--
+--Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
+--     represente un intervalo de tiempo mayor a cero--
 
 CREATE OR REPLACE FUNCTION conversion_a_timestamp_fecha_hora_devolucion(tiempo_uso TEXT, fecha_hora_retiro TIMESTAMP)
 RETURNS TIMESTAMP 
 AS $$
 
 DECLARE
-        rtaTS TIMESTAMP;
-        tiempo_uso_time TIME;
-        intervalo_auxiliar INTERVAL;
+    rtaTS TIMESTAMP;
+    tiempo_uso_time TIME;
+    intervalo_auxiliar INTERVAL;
+
 BEGIN
-        
-		tiempo_uso_time = to_timestamp(tiempo_uso, 'HH24:MI:SS');
-		intervalo_auxiliar = tiempo_uso_time + (tiempo_uso_time-tiempo_uso_time);	
-        rtaTS = fecha_hora_retiro + intervalo_auxiliar;
-       
-		RETURN rtaTS;
+	tiempo_uso_time = to_timestamp(tiempo_uso, 'HH24:MI:SS');
+	intervalo_auxiliar = tiempo_uso_time + (tiempo_uso_time-tiempo_uso_time);	
+    rtaTS = fecha_hora_retiro + intervalo_auxiliar;
+    RETURN rtaTS;
+
 END;
 $$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
 
+
+--Funcion esCorrectoTime--
+--Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo esta mal, false sino--
+--Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
+--     represente un intervalo de tiempo mayor a cero--
+
 CREATE OR REPLACE FUNCTION tiempo_uso_al_formato_correcto(tiempo_uso TEXT)
 RETURNS TEXT AS $$
-DECLARE
-		rtaTXT TEXT;
 
-        hora TEXT;
-        minu TEXT;
-        seg TEXT;
+DECLARE
+	rtaTXT TEXT;
+
+    hora TEXT;
+    minu TEXT;
+    seg TEXT;
         
-        posicion_h INTEGER;
-        posicion_m INTEGER;
-        posicion_seg INTEGER;
+    posicion_h INTEGER;
+    posicion_m INTEGER;
+    posicion_seg INTEGER;
 
 BEGIN
-        posicion_h = position('H' IN tiempo_uso); 
-        posicion_m = position('M' IN tiempo_uso); 
-        posicion_seg = position('S' IN tiempo_uso);
+    posicion_h = position('H' IN tiempo_uso); 
+    posicion_m = position('M' IN tiempo_uso); 
+    posicion_seg = position('S' IN tiempo_uso);
        
-        hora = substring(tiempo_uso FROM 1 FOR posicion_h-1 ); 
-        minu = substring(tiempo_uso FROM posicion_h + 2 FOR  posicion_m - (posicion_h + 2) );
-        seg = substring(tiempo_uso FROM posicion_m + 4 FOR posicion_seg - (posicion_m + 4)); 
+    hora = substring(tiempo_uso FROM 1 FOR posicion_h-1 ); 
+    minu = substring(tiempo_uso FROM posicion_h + 2 FOR  posicion_m - (posicion_h + 2) );
+    seg = substring(tiempo_uso FROM posicion_m + 4 FOR posicion_seg - (posicion_m + 4)); 
     
-        rtaTXT = concat_ws(':', hora, minu, seg);
-        
-        RETURN rtaTXT;
+    rtaTXT = concat_ws(':', hora, minu, seg);
+    RETURN rtaTXT;
+
 END;
-$$ LANGUAGE PLPGSQL
+$$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
+
+
+--Funcion esCorrectoTime--
+--Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo esta mal, false sino--
+--Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
+--     represente un intervalo de tiempo mayor a cero--
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_devolucion(fecha_hora_retiro TEXT, tiempo_uso TEXT)
 RETURNS TIMESTAMP AS $$
+
 DECLARE
-		rtaTS TIMESTAMP;
-		fecha_hora_retiro_ts TIMESTAMP;
-        tiempo_uso_text_formato_ok TEXT;
+	rtaTS TIMESTAMP;
+	fecha_hora_retiro_ts TIMESTAMP;
+    tiempo_uso_text_formato_ok TEXT;
+
 BEGIN
-		fecha_hora_retiro_ts = conversion_de_tipos_retiro(fecha_hora_retiro);
-        tiempo_uso_text_formato_ok = tiempo_uso_al_formato_correcto(tiempo_uso);
-       	rtaTS = conversion_a_timestamp_fecha_hora_devolucion(tiempo_uso_text_formato_ok, fecha_hora_retiro_ts);
-       	RETURN rtaTS;
+	fecha_hora_retiro_ts = conversion_de_tipos_retiro(fecha_hora_retiro);
+    tiempo_uso_text_formato_ok = tiempo_uso_al_formato_correcto(tiempo_uso);
+    rtaTS = conversion_a_timestamp_fecha_hora_devolucion(tiempo_uso_text_formato_ok, fecha_hora_retiro_ts);
+    RETURN rtaTS;
+
 END;
-$$ LANGUAGE PLPGSQL
+$$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
+
+
+--Funcion esCorrectoTime--
+--Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo esta mal, false sino--
+--Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
+--     represente un intervalo de tiempo mayor a cero--
 
 CREATE OR REPLACE FUNCTION conversion_de_tipos_retiro(fecha_hora_retiro TEXT)
 RETURNS TIMESTAMP AS $$
+
 DECLARE
 		rtaTS TIMESTAMP;
+
 BEGIN
         rtaTS = conversion_a_timestamp_fecha_hora_retiro(fecha_hora_retiro);
         RETURN rtaTS;
+
 END;
-$$ LANGUAGE PLPGSQL
+$$ LANGUAGE plpgSQL
 RETURNS NULL ON NULL INPUT;
+
 
 --Funcion esNULL--
 --Parametros: @field representa un campo de la tupla a revisar, @information representa el texto para el mensaje de error--
@@ -111,6 +161,7 @@ RETURNS NULL ON NULL INPUT;
 CREATE OR REPLACE FUNCTION esNULL(field anyelement, informacion TEXT) 
 RETURNS boolean
 AS $$
+
 BEGIN
     IF field IS NULL THEN
         raise notice 'El campo % es NULL', informacion;
@@ -118,8 +169,10 @@ BEGIN
     ELSE
         RETURN false;
     END IF;
+
 END;
 $$ LANGUAGE plpgsql;
+
 
 --Funcion esCorrectoTime--
 --Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
@@ -130,12 +183,14 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION esCorrectoTime(field anyelement, informacion TEXT) 
 RETURNS boolean
 AS $$
+
 DECLARE
     horas INTEGER;
     minutos INTEGER;
     segundos INTEGER;
     total_segundos INTEGER;
     timeString TEXT = to_char(field, 'HH:MM:SS');
+
 BEGIN
     IF field IS NULL THEN
         RAISE NOTICE 'El campo % es NULL', informacion;
@@ -152,8 +207,10 @@ BEGIN
     ELSE
           RETURN false;
     END IF;
+
 END;
 $$ LANGUAGE plpgsql;
+
 
 --Funcion primeraRestriction--
 --Parametros: ninguno--
@@ -164,8 +221,10 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION primeraRestriccion() 
 RETURNS Trigger
 AS $$
+
 DECLARE
     operacion BOOLEAN = false;
+
 BEGIN
     operacion = operacion OR esNULL(new.periodo, 'periodo');
     operacion = operacion OR esNULL(new.usuario, 'usuario');
@@ -181,85 +240,89 @@ BEGIN
     ELSE
         RETURN new;
     END IF;
+
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER chequearPrimeraRestriccion
 BEFORE INSERT ON auxi
 FOR EACH ROW
 EXECUTE PROCEDURE primeraRestriccion();
  
- 
- 
- 
-        CREATE OR REPLACE FUNCTION LIMPIA_REPETIDOS() 
-        RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION LIMPIA_REPETIDOS() 
+RETURNS VOID AS $$
         
-        DECLARE 
-            REP RECORD;
-            cursor1 CURSOR FOR SELECT DISTINCT usuario, fecha_hora_ret FROM auxi;            
+DECLARE 
+    REP RECORD;
+    devolucion TIMESTAMP;
         
-        begin
-            open cursor1;
-            LOOP
-                FETCH cursor1 INTO REP;
-                EXIT WHEN NOT FOUND;
-                PERFORM GUARDA(REP.usuario, REP.fecha_hora_ret);
-            END LOOP;
-            CLOSE cursor1;
-        end;
-        
-        $$ LANGUAGE PLPGSQL;
-        
-        
-        
-        CREATE OR REPLACE FUNCTION GUARDA
-        (myid auxi.usuario%TYPE, my_time auxi.fecha_hora_ret%type) RETURNS VOID AS $$
-        
-        
-        DECLARE
-            mycursor CURSOR FOR
-            SELECT * FROM auxi
-            WHERE myid = usuario AND my_time = fecha_hora_ret
-            ORDER BY tiempo_uso ASC;
-            cant INT;
-            devolucion TIMESTAMP;
-            mystruct RECORD;
-            mystruct2 RECORD;
+    cursor1 CURSOR FOR 
+    SELECT DISTINCT usuario, fecha_hora_ret FROM auxi
+    GROUP BY usuario, fecha_hora_ret
+    HAVING count(usuario) > 1;  
             
-        
-        BEGIN
-        
-         OPEN mycursor;
-         CANT = 0;
-                FETCH mycursor INTO mystruct;
-                        FETCH mycursor INTO mystruct2;
-                        
-                                IF mystruct2.usuario = mystruct.usuario AND mystruct2.fecha_hora_ret = mystruct.fecha_hora_ret THEN
-                                         devolucion = crear_fecha_hora_devolucion(mystruct2.tiempo_uso, mystruct2.fecha_hora_ret);
-                                         INSERT INTO RECORRIDO_FINAL VALUES(mystruct2.periodo, mystruct2.usuario, mystruct2.fecha_hora_ret, mystruct2.est_origen, mystruct2.est_origen, devolucion);
-                                
-                                ELSE
-                                        devolucion = crear_fecha_hora_devolucion(mystruct.tiempo_uso, mystruct.fecha_hora_ret);
-                                        INSERT INTO RECORRIDO_FINAL VALUES(mystruct.periodo, mystruct.usuario, mystruct.fecha_hora_ret, mystruct.est_origen, mystruct.est_origen, devolucion);
-                                
-                                END IF;
+BEGIN
+    OPEN cursor1;
+    LOOP
+        FETCH cursor1 INTO REP;
+        EXIT WHEN NOT FOUND;
+        PERFORM SEGUNDO(REP.usuario, REP.fecha_hora_ret);
+        END LOOP;
+    CLOSE cursor1;  
 
-                
-         CLOSE mycursor;   
-                
-       END;
-       $$ LANGUAGE PLPGSQL; 
+END;    
+$$ LANGUAGE PLPGSQL;
+
+        
+CREATE OR REPLACE FUNCTION SEGUNDO(myid auxi.usuario%TYPE, my_time auxi.fecha_hora_ret%type) 
+RETURNS VOID AS $$
+               
+DECLARE
+    pointer auxi;
+    firstFetch auxi;
+    devolucion TIMESTAMP;
+    cursor2 CURSOR FOR
+    SELECT * FROM auxi
+    WHERE usuario = myid and fecha_hora_ret = my_time
+    ORDER BY tiempo_uso ASC;            
+        
+BEGIN
+    OPEN cursor2;
+
+    FETCH cursor2 INTO firstFetch;
+    FETCH cursor2 INTO pointer;
+
+    CLOSE cursor2;
+
+    devolucion = crear_fecha_hora_devolucion(pointer.tiempo_uso, pointer.fecha_hora_ret);
+    INSERT INTO auxi2 VALUES(pointer.periodo, pointer.usuario, pointer.fecha_hora_ret, pointer.est_origen, pointer.est_destino, devolucion);
+
+END;
+$$ LANGUAGE PLPGSQL;
        
        
        
+CREATE OR REPLACE FUNCTION agrego_faltantes() 
+RETURNS VOID AS $$
+        
+DECLARE
+
+BEGIN
+    INSERT INTO auxi2
+    SELECT periodo, usuario, fecha_hora_ret, est_origen, est_destino, crear_fecha_hora_devolucion(tiempo_uso, fecha_hora_ret)
+    FROM auxi
+    WHERE (usuario, fecha_hora_ret) NOT IN (SELECT usuario, fecha_hora_ret FROM auxi2);
+
+END;
+$$ LANGUAGE PLPGSQL;
        
  --Funcion problemaSolapados--
 --Parametros: @usuario_id es el usuario al que vamos a buscarle problemas de solapamiento--
 --Retorno: Nada --
 --Uso: Se encarga de juntar tuplas solapadas e insertarlas en recorrido_final--  
 
- CREATE OR REPLACE FUNCTION problemaSolapados(usuario_id INTEGER) RETURNS VOID
+CREATE OR REPLACE FUNCTION problemaSolapados(usuario_id INTEGER) RETURNS VOID
 AS $$
 
 DECLARE
@@ -277,40 +340,33 @@ DECLARE
     fechaRetiro TIMESTAMP;
 	fechaDevolucion TIMESTAMP;
 
-
 BEGIN
 
-		OPEN cursorSolap;
-		FETCH cursorSolap INTO structSolap;
+	OPEN cursorSolap;
+	FETCH cursorSolap INTO structSolap;
+
+	LOOP
+		EXIT WHEN structSolap ISNULL;
+            
+        origen = structSolap.est_origen;
+        destino = structSolap.est_destino;
+		periodo = structSolap.periodo;
+            
+		fechaRetiro = structSolap.fecha_hora_ret;
+		fechaDevolucion = structSolap.fecha_hora_dev;
 
 		LOOP
-
-			EXIT WHEN structSolap ISNULL;
-            
-            origen = structSolap.est_origen;
+            FETCH cursorSolap INTO structSolap;
+            EXIT WHEN NOT FOUND OR structSolap.fecha_hora_ret > fechaDevolucion;
+            fechaDevolucion = structSolap.fecha_hora_dev;
             destino = structSolap.est_destino;
-			periodo = structSolap.periodo;
-            
-			fechaRetiro = structSolap.fecha_hora_ret;
-			fechaDevolucion = structSolap.fecha_hora_dev;
-			
-			
-
-			LOOP
-
-                FETCH cursorSolap INTO structSolap;
-                EXIT WHEN NOT FOUND OR structSolap.fecha_hora_ret > fechaDevolucion;
-                fechaDevolucion = structSolap.fecha_hora_dev;
-                destino = structSolap.est_destino;
-
-			END LOOP;
-
-			INSERT INTO recorrido_final VALUES(periodo, usuario_id, fechaRetiro, origen, destino, fechaDevolucion);
-
 		END LOOP;
-		CLOSE cursorSolap;
-        
 
+		INSERT INTO recorrido_final VALUES(periodo, usuario_id, fechaRetiro, origen, destino, fechaDevolucion);
+
+	END LOOP;
+	CLOSE cursorSolap;
+        
 END;
 $$ LANGUAGE plpgSQL;
 
@@ -319,46 +375,49 @@ CREATE OR REPLACE FUNCTION cond1()
 RETURNS VOID AS $$
 
 DECLARE         
-        fecha_h_r TIMESTAMP;
-        fecha_h_d TIMESTAMP;   
+    fecha_h_r TIMESTAMP;
+    fecha_h_d TIMESTAMP;   
+
 BEGIN  
-	    INSERT INTO auxi
-	    SELECT DISTINCT periodo, id_usuario, conversion_de_tipos_retiro(fecha_hora_retiro), 
-	    	origen_estacion, destino_estacion, to_timestamp(tiempo_uso_al_formato_correcto(tiempo_uso), 'HH24:MI:SS')
-	    FROM datos_recorrido;
+	INSERT INTO auxi
+	SELECT DISTINCT periodo, id_usuario, conversion_de_tipos_retiro(fecha_hora_retiro), 
+	    origen_estacion, destino_estacion, to_timestamp(tiempo_uso_al_formato_correcto(tiempo_uso), 'HH24:MI:SS')
+	FROM datos_recorrido;
 	  
 END;
 $$ LANGUAGE PLPGSQL;
 
+
 CREATE OR REPLACE FUNCTION cond2()
 RETURNS VOID AS $$
+
 BEGIN  
-	    PERFORM LIMPIA_REPETIDOS();	  
+    PERFORM LIMPIA_REPETIDOS();
+    PERFORM agrego_faltantes(); 
+
 END;
 $$ LANGUAGE PLPGSQL;
 
+
 CREATE OR REPLACE FUNCTION cond3() RETURNS VOID
 AS $$
-DECLARE
 
-		id INTEGER;
- 		cursor3 CURSOR FOR
-		SELECT DISTINCT usuario FROM auxi2;
+DECLARE
+	id INTEGER;
+ 	cursor3 CURSOR FOR
+	SELECT DISTINCT usuario FROM auxi2;
 
 BEGIN
-		OPEN cursor3;
-		LOOP
-
-			FETCH cursor3 INTO id;
-			EXIT WHEN NOT FOUND;
-			PERFORM problemaSolapados(id);
-
-		END LOOP;
-		CLOSE cursor3;
+	OPEN cursor3;
+	LOOP
+		FETCH cursor3 INTO id;
+		EXIT WHEN NOT FOUND;
+		PERFORM problemaSolapados(id);
+	END LOOP;
+	CLOSE cursor3;
 
 END;
 $$ LANGUAGE plpgSQL;
-
 
 
 CREATE OR REPLACE FUNCTION triggerSolap()
@@ -368,6 +427,7 @@ BEGIN
 	CREATE TRIGGER detecta_solapado BEFORE INSERT ON RECORRIDO_FINAL
 	FOR EACH ROW
 	EXECUTE PROCEDURE detecta_solapado();
+    
 END;
 
 $$ LANGUAGE plpgsql;
@@ -389,14 +449,11 @@ BEGIN
 	WHERE usuario = new.usuario AND (fecha_hora_ret <= new.fecha_hora_dev) AND (fecha_hora_dev >= new.fecha_hora_ret);
 
 	IF (cant > 0) THEN
-    
 		RAISE EXCEPTION 'Error: Elementos solapados';
-        
 	END IF;
 
 	RETURN new;
 END;
-
 $$ LANGUAGE plpgsql;
 
 
@@ -404,20 +461,19 @@ CREATE OR REPLACE FUNCTION migracion()
 RETURNS VOID AS $$
 
 BEGIN
-  PERFORM cond1();
-  PERFORM cond2();
-  PERFORM cond3();
-  PERFORM triggerSolap();
-  /* DROP TABLE datos_recorrido */
-  /* DROP TABLE auxi */
-  /* DROP TABLE auxi2 */
-  
+    PERFORM cond1();
+    PERFORM cond2();
+    PERFORM cond3();
+    PERFORM triggerSolap();
+    /* DROP TABLE datos_recorrido */
+    /* DROP TABLE auxi */
+    /* DROP TABLE auxi2 */
 END;
 $$ LANGUAGE PLPGSQL;
 
 
 DO $$
 BEGIN
-  PERFORM migracion();
+    PERFORM migracion();
 END;
 $$
