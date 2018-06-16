@@ -254,7 +254,11 @@ EXECUTE PROCEDURE primeraRestriccion();
        
        
        
-       
+ --Funcion problemaSolapados--
+--Parametros: @usuario_id es el usuario al que vamos a buscarle problemas de solapamiento--
+--Retorno: retorna 1 si ejecuto sin problemas --
+--Uso: Se encarga de juntar tuplas solapadas e insertarlas en recorrido_final--  
+
  CREATE OR REPLACE FUNCTION problemaSolapados(usuario_id INTEGER) RETURNS INTEGER
 AS $$
 
@@ -339,7 +343,7 @@ DECLARE
 
 		id INTEGER;
  		cursor3 CURSOR FOR
-		SELECT DISTINCT usuario FROM auxi;
+		SELECT DISTINCT usuario FROM auxi2;
 
 BEGIN
 		OPEN cursor3;
