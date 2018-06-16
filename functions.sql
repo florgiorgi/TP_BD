@@ -276,12 +276,54 @@ END;
 $$ LANGUAGE PLPGSQL;
 
 
+
+CREATE OR REPLACE FUNCTION triggerSolap()
+RETURNS VOID AS $$
+
+BEGIN
+	CREATE TRIGGER detecta_solapado BEFORE INSERT ON RECORRIDO_FINAL
+	FOR EACH ROW
+	EXECUTE PROCEDURE detecta_solapado();
+END;
+
+$$ LANGUAGE plpgsql;
+
+
+--Funcion detecta_solapado--
+--Parametros: ninguno--
+--Retorno: Trigger --
+--Uso: Comprueba que no se viole condicion de solapamiento en una nueva insercion--
+CREATE OR REPLACE FUNCTION detecta_solapado()
+RETURNS Trigger AS $$
+
+DECLARE
+ 	cant INT;
+    
+BEGIN
+	SELECT count(*) INTO cant
+	FROM RECORRIDO_FINAL
+	WHERE usuario = new.usuario AND (fecha_hora_ret <= new.fecha_hora_dev) AND (fecha_hora_dev >= new.fecha_hora_ret);
+
+	IF (cant > 0) THEN
+    
+		RAISE EXCEPTION 'Error: Elementos solapados';
+        
+	END IF;
+
+	RETURN new;
+END;
+
+$$ LANGUAGE plpgsql;
+
+
 CREATE OR REPLACE FUNCTION migracion()
 RETURNS VOID AS $$
 
 BEGIN
   PERFORM cond1();
   PERFORM cond2();
+  /* condicion 3 */
+  PERFORM triggerSolap();
   
 END;
 $$ LANGUAGE PLPGSQL;
