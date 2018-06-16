@@ -62,9 +62,9 @@ DECLARE
         posicion_seg INTEGER;
 
 BEGIN
-        posicion_h = position('H' IN tiempo_uso); 
-        posicion_m = position('M' IN tiempo_uso); 
-        posicion_seg = position('S' IN tiempo_uso);
+        posicion_h = posicion('H' IN tiempo_uso); 
+        posicion_m = posicion('M' IN tiempo_uso); 
+        posicion_seg = posicion('S' IN tiempo_uso);
        
         hora = substring(tiempo_uso FROM 1 FOR posicion_h-1 ); 
         minu = substring(tiempo_uso FROM posicion_h + 2 FOR  posicion_m - (posicion_h + 2) );
