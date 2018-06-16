@@ -575,8 +575,8 @@ BEGIN
   PERFORM agrego_faltantes2();
   PERFORM triggerSolap();
   /* DROP TABLE datos_recorrido */
-  /* DROP TABLE auxi */
-  /* DROP TABLE auxi2 */
+  DROP TABLE auxi
+  DROP TABLE auxi2
   
 END;
 $$ LANGUAGE PLPGSQL;
