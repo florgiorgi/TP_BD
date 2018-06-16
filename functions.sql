@@ -295,9 +295,9 @@ BEGIN
 			LOOP
 
                 FETCH cursorSolap INTO structSolap;
-                EXIT WHEN NOT FOUND OR structSolap.fecha_hora_ret > fechaFinal;
-                fechaFinal = structSolap.fecha_hora_dev;
-                maxEstacion = structSolap.est_destino;
+                EXIT WHEN NOT FOUND OR structSolap.fecha_hora_ret > fechaDevolucion;
+                fechaDevolucion = structSolap.fecha_hora_dev;
+                destino = structSolap.est_destino;
 
 			END LOOP;
 
