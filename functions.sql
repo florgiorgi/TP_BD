@@ -356,7 +356,6 @@ BEGIN
 		END LOOP;
 		CLOSE cursor3;
 
-		RETURN 1;
 END;
 $$ LANGUAGE plpgSQL;
 
