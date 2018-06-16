@@ -345,7 +345,7 @@ BEGIN
 		OPEN cursor3;
 		LOOP
 
-			FETCH cursor3 INTO value;
+			FETCH cursor3 INTO id;
 			EXIT WHEN NOT FOUND;
 			PERFORM problemaSolapados(id);
 
