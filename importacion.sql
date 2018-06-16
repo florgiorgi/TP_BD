@@ -49,9 +49,4 @@ HACER
  SET datestyle = dmy;
  
  
- Y DESPS:
- 
-\copy datos_recorrido FROM 'path-archivo-remoto' csv header delimiter ';' NULL 'NULL';
-
-EL QUE ANDA ES:
 \copy datos_recorrido FROM 'path-archivo-remoto' header delimiter ';' csv;

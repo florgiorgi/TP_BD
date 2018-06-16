@@ -57,18 +57,18 @@ DECLARE
         minu TEXT;
         seg TEXT;
         
-        position_h INTEGER;
-        position_m INTEGER;
-        position_seg INTEGER;
+        posicion_h INTEGER;
+        posicion_m INTEGER;
+        posicion_seg INTEGER;
 
 BEGIN
-        position_h = position('H' in tiempo_uso); 
-        position_m = position('M' in tiempo_uso); 
-        position_seg = position('S' in tiempo_uso);
+        posicion_h = position('H' IN tiempo_uso); 
+        posicion_m = position('M' IN tiempo_uso); 
+        posicion_seg = position('S' IN tiempo_uso);
        
-        hora = substring(tiempo_uso from 1 for position_h-1 ); 
-        minu = substring(tiempo_uso from position_h + 2 for  position_m - (position_h + 2) );
-        seg = substring(tiempo_uso from position_m + 4 for position_seg - (position_m + 4)); 
+        hora = substring(tiempo_uso FROM 1 FOR posicion_h-1 ); 
+        minu = substring(tiempo_uso FROM posicion_h + 2 FOR  posicion_m - (posicion_h + 2) );
+        seg = substring(tiempo_uso FROM posicion_m + 4 FOR posicion_seg - (posicion_m + 4)); 
     
         rtaTXT = concat_ws(':', hora, minu, seg);
         
@@ -108,86 +108,89 @@ RETURNS NULL ON NULL INPUT;
 --Retorno: True si el campo es null, false sino--
 --Uso: Se encarga de chequear que el campo @field no sea null--
 
-CREATE OR REPLACE FUNCTION isNULL(field anyelement, information TEXT) 
+CREATE OR REPLACE FUNCTION isNULL(field un_elemento, informacion TEXT) 
 RETURNS boolean
 AS $$
 BEGIN
     IF field IS NULL THEN
-        raise notice 'El campo % es NULL', information;
-        return true;
+        raise notice 'El campo % es NULL', informacion;
+        RETURN true;
     ELSE
-        return false;
+        RETURN false;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
---Funcion isCorrectTime--
+--Funcion esCorrectoTime--
 --Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
 --Retorno: True si el campo esta mal, false sino--
 --Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
 --     represente un intervalo de tiempo mayor a cero--
 
-CREATE OR REPLACE FUNCTION isCorrectTime(field anyelement, information TEXT) 
+CREATE OR REPLACE FUNCTION esCorrectoTime(field un_elemento, informacion TEXT) 
 RETURNS boolean
 AS $$
 DECLARE
-    hours INTEGER;
-    minutes INTEGER;
-    seconds INTEGER;
-    total_seconds INTEGER;
+    horas INTEGER;
+    minutus INTEGER;
+    segundos INTEGER;
+    total_segundos INTEGER;
     timeString TEXT = to_char(field, 'HH:MM:SS');
 BEGIN
     IF field IS NULL THEN
-        raise notice 'El campo % es NULL', information;
-        return true;
+        raise notice 'El campo % es NULL', informacion;
+        RETURN true;
     END IF;
 
-    SELECT (EXTRACT( HOUR FROM  field::time) * 60*60) INTO hours; 
-    SELECT (EXTRACT (MINUTES FROM field::time) * 60) INTO minutes;
-    SELECT (EXTRACT (SECONDS from field::time)) INTO seconds;
-    SELECT (hours + minutes + seconds) INTO total_seconds;
+    SELECT (EXTRACT( HOUR FROM  field::time) * 60*60) INTO horas; 
+    SELECT (EXTRACT (MINUTES FROM field::time) * 60) INTO minutos;
+    SELECT (EXTRACT (SECONDS FROM field::time)) INTO segundos;
+    SELECT (hours + minutes + seconds) INTO total_segundos;
     IF  total_seconds <= 0 THEN
-        raise notice 'El campo % es un tiempo erroneo', information;
-        return true;
+        raise notice 'El campo % es un tiempo erroneo', informacion;
+        RETURN true;
     ELSE
-          return false;
+          RETURN false;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
---Funcion firstRestriction--
+--Funcion primeraRestriction--
 --Parametros: ninguno--
---Retorno: Trigger de tipo checkFirstRestriction--
+--Retorno: Trigger de tipo chequearPrimeraRestriccion--
 --Uso: Se encarga de chequear que la restriccion uno se cumpla para toda--
 --     tupla a agregar a la tabla--
 
-CREATE OR REPLACE FUNCTION firstRestriction() 
+CREATE OR REPLACE FUNCTION primeraRestriccion() 
 RETURNS Trigger
 AS $$
 DECLARE
-    operation boolean = false;
+    operation BOOLEAN = false;
 BEGIN
     operation = operation OR isNULL(new.periodo, 'periodo');
     operation = operation OR isNULL(new.usuario, 'usuario');
     operation = operation OR isNULL(new.fecha_hora_ret, 'fecha_hora_ret');
     operation = operation OR isNULL(new.est_origen, 'est_origen');
     operation = operation OR isNULL(new.est_destino, 'est_destino');
-    operation = operation OR isCorrectTime(new.tiempo_uso, 'tiempo_uso');
+    operation = operation OR esCorrectoTime(new.tiempo_uso, 'tiempo_uso');
     
     IF operation THEN
         raise notice 'No se pudo insertar % % % % % %',new.periodo, new.usuario, new.fecha_hora_ret,new.est_origen 
                                                        ,new.est_destino, new.tiempo_uso; 
-        return NULL;
+        RETURN NULL;
     ELSE
-        return new;
+        RETURN new;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER checkFirstRestriction
- BEFORE INSERT ON auxi
- FOR EACH ROW
- EXECUTE PROCEDURE firstRestriction();
+CREATE TRIGGER chequearPrimeraRestriccion
+BEFORE INSERT ON auxi
+FOR EACH ROW
+EXECUTE PROCEDURE primeraRestriccion();
+ 
+ 
+ 
  
         CREATE OR REPLACE FUNCTION LIMPIA_REPETIDOS() 
         RETURNS VOID AS $$
@@ -219,7 +222,7 @@ CREATE TRIGGER checkFirstRestriction
             SELECT * FROM auxi
             WHERE myid = usuario AND my_time = fecha_hora_ret
             ORDER BY tiempo_uso ASC;
-            CANT INT;
+            cant INT;
             devolucion TIMESTAMP;
             mystruct RECORD;
             mystruct2 RECORD;
