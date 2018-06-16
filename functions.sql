@@ -265,10 +265,10 @@ AS $$
 DECLARE
 
 	cursorSolap CURSOR FOR
-	SELECT * FROM auxi
+	SELECT * FROM auxi2
 	WHERE usuario = usuario_id
 	ORDER BY fecha_hora_ret ASC;
-	structSolap auxi;
+	structSolap auxi2;
 	
 	origen INTEGER;
 	destino INTEGER;
