@@ -103,6 +103,11 @@ END;
 $$ LANGUAGE PLPGSQL
 RETURNS NULL ON NULL INPUT;
 
+--Funcion isNULL--
+--Parametros: @field representa un campo de la tupla a revisar, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo es null, false sino--
+--Uso: Se encarga de chequear que el campo @field no sea null--
+
 CREATE OR REPLACE FUNCTION isNULL(field anyelement, information TEXT) 
 RETURNS boolean
 AS $$
@@ -115,6 +120,12 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+--Funcion isCorrectTime--
+--Parametros: @field representa al campo tiempo_uso, @information representa el texto para el mensaje de error--
+--Retorno: True si el campo esta mal, false sino--
+--Uso: Se encarga de chequear que el campo @field sea un tipo de datos TIME que--
+--     represente un intervalo de tiempo mayor a cero--
 
 CREATE OR REPLACE FUNCTION isCorrectTime(field anyelement, information TEXT) 
 RETURNS boolean
@@ -143,6 +154,12 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+--Funcion firstRestriction--
+--Parametros: ninguno--
+--Retorno: Trigger de tipo checkFirstRestriction--
+--Uso: Se encarga de chequear que la restriccion uno se cumpla para toda--
+--     tupla a agregar a la tabla--
 
 CREATE OR REPLACE FUNCTION firstRestriction() 
 RETURNS Trigger
@@ -241,7 +258,7 @@ DECLARE
         fecha_h_d TIMESTAMP;   
 BEGIN  
 	    INSERT INTO auxi
-	    SELECT periodo, id_usuario, conversion_de_tipos_retiro(fecha_hora_retiro), 
+	    SELECT DISTINCT periodo, id_usuario, conversion_de_tipos_retiro(fecha_hora_retiro), 
 	    	origen_estacion, destino_estacion, to_timestamp(tiempo_uso_al_formato_correcto(tiempo_uso), 'HH24:MI:SS')
 	    FROM datos_recorrido;
 	  
