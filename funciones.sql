@@ -404,14 +404,9 @@ CREATE OR REPLACE FUNCTION agrego_faltantes2()
                 SELECT periodo, usuario, fecha_hora_ret, est_origen, est_destino, fecha_hora_dev
                 FROM auxi2
                 WHERE usuario NOT IN (SELECT usuario FROM recorrido_final);
-          END;
-       $$ LANGUAGE PLPGSQL;
+        END;
+$$ LANGUAGE PLPGSQL;
 
-DO $$
-BEGIN
-  PERFORM migracion();
-END;
-$$
        
 
 --Funcion problemaSolapados--
@@ -575,8 +570,8 @@ BEGIN
   PERFORM agrego_faltantes2();
   PERFORM triggerSolap();
   /* DROP TABLE datos_recorrido */
-  DROP TABLE auxi
-  DROP TABLE auxi2
+  DROP TABLE auxi;
+  DROP TABLE auxi2;
   
 END;
 $$ LANGUAGE PLPGSQL;
